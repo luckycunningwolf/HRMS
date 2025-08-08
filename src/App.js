@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Attendance from './pages/Attendance';
+import LeaveManagement from './pages/LeaveManagement';
+import Reports from './pages/Reports';  // Add this import
 import Sidebar from './components/Sidebar';
 
 export default function App() {
@@ -13,6 +15,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/attendance" element={<Attendance />} />
+            <Route path="/leaves" element={<LeaveManagement />} />
+            <Route path="/reports" element={<Reports />} />  {/* Add this route */}
           </Routes>
         </div>
       </div>
