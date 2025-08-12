@@ -29,11 +29,11 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
     
-    // Update time every minute with IST
+    // Update time every second for continuous flow - FIXED ISSUE 1
     const timeInterval = setInterval(() => {
       setCurrentTime(getCurrentISTTime());
       setCurrentDate(getCurrentISTDateDisplay());
-    }, 60000);
+    }, 1000); // Changed from 60000 to 1000 for real-time updates
 
     return () => clearInterval(timeInterval);
   }, [selectedPeriod]);
@@ -75,7 +75,6 @@ export default function Dashboard() {
 
   const getPeriodStart = () => {
     const now = new Date();
-    // Convert to IST
     const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
     
     switch (selectedPeriod) {
@@ -94,7 +93,7 @@ export default function Dashboard() {
   };
 
   const calculateQuickStats = (employees, attendance, leaves) => {
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD format in IST
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     const thisMonth = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', month: 'numeric' }) - 1;
     
     return {
@@ -128,25 +127,27 @@ export default function Dashboard() {
            leave.end_date >= today;
   };
 
+  // FIXED ISSUE 7 - Improved recent activities generation
   const generateRecentActivities = (attendance, leaves) => {
     const activities = [];
     
-    // Recent attendance entries
+    // Recent attendance entries with better messages
     attendance?.slice(-5).forEach(att => {
+      const employeeName = getEmployeeName(att.employee_id);
       activities.push({
         type: 'attendance',
-        message: `Employee marked ${att.status.toLowerCase()}`,
-        time: att.date,
-        icon: att.status === 'Present' ? '✅' : '❌',
+        message: `${employeeName} marked ${att.status.toLowerCase()}`,
+        time: att.created_at || att.date,
+        icon: att.status === 'Present' ? '✅' : att.status === 'Absent' ? '❌' : '🏖️',
         priority: 'normal'
       });
     });
 
-    // Recent leave requests
+    // Recent leave requests with better messages
     leaves?.slice(-5).forEach(leave => {
       activities.push({
         type: 'leave',
-        message: `${leave.employees?.name || 'Employee'} requested ${leave.leave_type} leave`,
+        message: `${leave.employees?.name || 'Employee'} requested ${leave.leave_type || 'leave'}`,
         time: leave.created_at,
         icon: '🏖️',
         priority: leave.status === 'pending' ? 'high' : 'normal'
@@ -154,8 +155,15 @@ export default function Dashboard() {
     });
 
     return activities
+      .filter(activity => activity.time) // Filter out activities without time
       .sort((a, b) => new Date(b.time) - new Date(a.time))
       .slice(0, 8);
+  };
+
+  // Helper function to get employee name by ID
+  const getEmployeeName = (employeeId) => {
+    const employee = dashboardData.employees.find(emp => emp.id === employeeId);
+    return employee?.name || 'Employee';
   };
 
   const getPendingApprovals = (leaves) => {
@@ -199,7 +207,7 @@ export default function Dashboard() {
       const now = new Date();
       const monthsDiff = (now.getFullYear() - joinDate.getFullYear()) * 12 + 
                         (now.getMonth() - joinDate.getMonth());
-      return monthsDiff > 0 && monthsDiff % 6 === 0; // Every 6 months
+      return monthsDiff > 0 && monthsDiff % 6 === 0;
     })?.length || 0;
 
     if (thisMonthReviews > 0) {
@@ -218,6 +226,7 @@ export default function Dashboard() {
     });
   };
 
+  // FIXED ISSUE 4 - Enhanced quick action handler
   const handleQuickAction = (action) => {
     switch (action) {
       case 'addEmployee':
@@ -232,8 +241,34 @@ export default function Dashboard() {
       case 'reviewLeaves':
         window.location.href = '/leaves';
         break;
+      case 'viewAttendance': // Added this case
+        window.location.href = '/attendance';
+        break;
+      case 'scheduleReviews': // Added this case
+        window.location.href = '/performance';
+        break;
+      case 'viewPerformance': // FIXED ISSUE 6 - Added performance navigation
+        window.location.href = '/performance';
+        break;
       default:
         console.log('Unknown action:', action);
+    }
+  };
+
+  // FIXED ISSUE 4 - Enhanced alert action handler
+  const handleAlertAction = (action) => {
+    switch (action) {
+      case 'View Attendance':
+        handleQuickAction('viewAttendance');
+        break;
+      case 'Review Leaves':
+        handleQuickAction('reviewLeaves');
+        break;
+      case 'Schedule Reviews':
+        handleQuickAction('scheduleReviews');
+        break;
+      default:
+        console.log('Unknown alert action:', action);
     }
   };
 
@@ -257,27 +292,32 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      {/* Header Section */}
+      {/* Header Section - FIXED ISSUE 3 - Made title more centered and sleek */}
       <div className="dashboard-header">
-        <div className="header-left">
-          <h1>📊 HR Dashboard</h1>
-          <p>Welcome back! Here's your organization overview for {formatDateToDDMMYYYY(new Date())}</p>
-        </div>
-        <div className="header-right">
-          <div className="current-time">
-            <span className="time">{currentTime}</span>
-            <span className="date">{currentDate}</span>
+        <div className="header-content">
+          <div className="header-title-section">
+            <h1 className="dashboard-title">Human Resource Dashboard</h1>
+            <p className="dashboard-subtitle">Welcome back! Here's your organization overview for {formatDateToDDMMYYYY(new Date())}</p>
           </div>
-          <select 
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="period-selector"
-          >
-            <option value="today">Today</option>
-            <option value="thisWeek">This Week</option>
-            <option value="thisMonth">This Month</option>
-            <option value="thisYear">This Year</option>
-          </select>
+          <div className="header-controls">
+            <div className="current-time">
+              <span className="time">{currentTime}</span>
+              <span className="date">{currentDate}</span>
+            </div>
+            {/* FIXED ISSUE 2 - Made period selector more modern */}
+            <div className="period-selector-container">
+              <select 
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="period-selector modern"
+              >
+                <option value="today">📅 Today</option>
+                <option value="thisWeek">📊 This Week</option>
+                <option value="thisMonth">📈 This Month</option>
+                <option value="thisYear">🗓️ This Year</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -316,7 +356,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Alerts Section */}
+      {/* Alerts Section - FIXED ISSUE 4 - Made alert buttons functional */}
       {dashboardData.alerts.length > 0 && (
         <div className="alerts-section">
           {dashboardData.alerts.slice(0, 3).map((alert, index) => (
@@ -325,7 +365,12 @@ export default function Dashboard() {
                 <h4>{alert.title}</h4>
                 <p>{alert.message}</p>
               </div>
-              <button className="alert-action">{alert.action}</button>
+              <button 
+                className="alert-action"
+                onClick={() => handleAlertAction(alert.action)}
+              >
+                {alert.action}
+              </button>
             </div>
           ))}
         </div>
@@ -350,7 +395,7 @@ export default function Dashboard() {
               <div 
                 className="progress-fill" 
                 style={{ 
-                  width: `${(dashboardData.quickStats.activeEmployees / dashboardData.quickStats.totalEmployees) * 100}%` 
+                  width: `${dashboardData.quickStats.totalEmployees > 0 ? (dashboardData.quickStats.activeEmployees / dashboardData.quickStats.totalEmployees) * 100 : 0}%` 
                 }}
               ></div>
             </div>
@@ -389,7 +434,8 @@ export default function Dashboard() {
               <span className="pending">{dashboardData.quickStats.pendingLeaves} pending approvals</span>
             </div>
           </div>
-          <div className="metric-action">
+          {/* FIXED ISSUE 5 - Centered the review button */}
+          <div className="metric-action centered">
             <button 
               className="action-btn"
               onClick={() => handleQuickAction('reviewLeaves')}
@@ -410,7 +456,8 @@ export default function Dashboard() {
               <span>This {selectedPeriod.replace('this', '').toLowerCase()}</span>
             </div>
           </div>
-          <div className="metric-trend">
+          {/* FIXED ISSUE 6 - Made View Details functional */}
+          <div className="metric-trend clickable" onClick={() => handleQuickAction('viewPerformance')}>
             <span className="trend-icon">📊</span>
             <span className="trend-text">View Details</span>
           </div>
@@ -437,7 +484,7 @@ export default function Dashboard() {
                       </div>
                       <div className="approval-info">
                         <strong>{leave.employees?.name || 'Unknown Employee'}</strong>
-                        <p>{leave.leave_type} leave for {calculateLeaveDays(leave.start_date, leave.end_date)} days</p>
+                        <p>{leave.leave_type || 'Leave'} for {calculateLeaveDays(leave.start_date, leave.end_date)} days</p>
                         <small className="approval-date">
                           {formatDateToDDMMYYYY(leave.start_date)} - {formatDateToDDMMYYYY(leave.end_date)}
                         </small>
@@ -523,7 +570,7 @@ export default function Dashboard() {
 
         {/* Right Column */}
         <div className="content-right">
-          {/* Recent Activities */}
+          {/* Recent Activities - FIXED ISSUE 7 */}
           <div className="dashboard-widget">
             <div className="widget-header">
               <h3>🕒 Recent Activities</h3>
@@ -545,7 +592,7 @@ export default function Dashboard() {
                   <div className="empty-state">
                     <div className="empty-icon">📝</div>
                     <p>No recent activities</p>
-                    <small>Activities will appear here</small>
+                    <small>Activities will appear here once you start using the system</small>
                   </div>
                 )}
               </div>

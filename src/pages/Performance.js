@@ -187,7 +187,7 @@ export default function Performance() {
     <div className="performance-container">
       {/* Header */}
       <div className="performance-header">
-        <h1>🎯 Performance Management</h1>
+        <h1> Performance Management</h1>
         <button 
           onClick={() => setShowReviewForm(!showReviewForm)}
           className="btn-primary"

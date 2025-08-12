@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase/supabaseClient';
+import jsPDF from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -123,6 +125,89 @@ export default function Reports() {
 
   const stats = calculateStats();
 
+  // FIXED: Generate PDF for individual employee
+  const generateEmployeePDF = (employee) => {
+    const doc = new jsPDF();
+    const empAttendance = attendance.filter(a => a.employee_id === employee.id);
+    const present = empAttendance.filter(a => a.status === 'Present').length;
+    const absent = empAttendance.filter(a => a.status === 'Absent').length;
+    const leave = empAttendance.filter(a => a.status === 'Leave').length;
+    const total = present + absent + leave;
+    const rate = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+    // Header
+    doc.setFillColor(129, 212, 250);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Attendance Report', 15, 20);
+
+    // Employee Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Employee Information', 15, 45);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text(`Name: ${employee.name}`, 15, 55);
+    doc.text(`Email: ${employee.email || 'N/A'}`, 15, 65);
+    doc.text(`Employee ID: ${employee.employee_id || employee.id}`, 15, 75);
+    doc.text(`Department: ${employee.department || 'N/A'}`, 15, 85);
+    doc.text(`Report Period: ${selectedMonth}`, 15, 95);
+
+    // Summary Stats
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Attendance Summary', 15, 115);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text(`Total Working Days: ${total}`, 15, 125);
+    doc.text(`Present Days: ${present}`, 15, 135);
+    doc.text(`Absent Days: ${absent}`, 15, 145);
+    doc.text(`Leave Days: ${leave}`, 15, 155);
+    doc.text(`Attendance Rate: ${rate}%`, 15, 165);
+
+    // Detailed Attendance Table
+    const attendanceDetails = empAttendance.map(record => [
+      new Date(record.date).toLocaleDateString(),
+      record.status,
+      record.status === 'Present' ? '✓' : record.status === 'Absent' ? '✗' : '🏖️'
+    ]);
+
+    // FIXED: Use autoTable as a function, not a method
+    autoTable(doc, {
+      head: [['Date', 'Status', 'Mark']],
+      body: attendanceDetails,
+      startY: 180,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [129, 212, 250],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [240, 249, 255]
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 3
+      }
+    });
+
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text(`Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 15, pageHeight - 10);
+    doc.text('HR Management System', 150, pageHeight - 10);
+
+    // Save PDF
+    doc.save(`${employee.name.replace(/\s+/g, '_')}_Attendance_Report_${selectedMonth}.pdf`);
+  };
+
   // Chart data for attendance
   const attendanceChartData = {
     labels: ['Present', 'Absent', 'On Leave'],
@@ -131,16 +216,16 @@ export default function Reports() {
         label: 'Attendance Status',
         data: [stats.presentCount, stats.absentCount, stats.leaveCount],
         backgroundColor: [
-          '#28a745',
-          '#dc3545',
-          '#ffc107'
+          'rgba(165, 214, 167, 0.8)',
+          'rgba(239, 154, 154, 0.8)',
+          'rgba(255, 204, 128, 0.8)'
         ],
         borderColor: [
-          '#28a745',
-          '#dc3545',
-          '#ffc107'
+          '#a5d6a7',
+          '#ef9a9a',
+          '#ffcc80'
         ],
-        borderWidth: 1,
+        borderWidth: 2,
       },
     ],
   };
@@ -153,16 +238,16 @@ export default function Reports() {
         label: 'Leave Requests',
         data: [stats.pendingLeaves, stats.approvedLeaves, stats.rejectedLeaves],
         backgroundColor: [
-          '#ffc107',
-          '#28a745',
-          '#dc3545'
+          'rgba(255, 204, 128, 0.8)',
+          'rgba(165, 214, 167, 0.8)',
+          'rgba(239, 154, 154, 0.8)'
         ],
         borderColor: [
-          '#ffc107',
-          '#28a745',
-          '#dc3545'
+          '#ffcc80',
+          '#a5d6a7',
+          '#ef9a9a'
         ],
-        borderWidth: 1,
+        borderWidth: 2,
       },
     ],
   };
@@ -188,14 +273,14 @@ export default function Reports() {
     });
 
     return {
-      labels: employeeData.map(e => e.name),
+      labels: employeeData.map(e => e.name.length > 10 ? e.name.substring(0, 10) + '...' : e.name),
       datasets: [
         {
           label: 'Attendance Rate (%)',
           data: employeeData.map(e => e.rate),
-          backgroundColor: 'rgba(54, 162, 235, 0.6)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1,
+          backgroundColor: 'rgba(129, 212, 250, 0.6)',
+          borderColor: '#81d4fa',
+          borderWidth: 2,
         },
       ],
     };
@@ -257,21 +342,26 @@ export default function Reports() {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
       },
       title: {
-        display: true,
-        text: 'Report Analytics',
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
       },
     },
   };
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <h1>Reports</h1>
+      <div className="reports-loading">
+        <div className="loading-spinner"></div>
         <p>Loading reports data...</p>
       </div>
     );
@@ -281,20 +371,19 @@ export default function Reports() {
     <div className="reports-container">
       {/* Header */}
       <div className="reports-header">
-        <h1>📊 Reports & Analytics</h1>
+        <div>
+          <h1>Reports & Analytics</h1>
+          <p>Comprehensive insights and data visualization</p>
+        </div>
         <div className="reports-controls">
-          <label>
+          <label className="month-selector">
+            <span className="label-icon">📅</span>
             Select Month:
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              style={{
-                marginLeft: '10px',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px'
-              }}
+              className="month-input"
             />
           </label>
         </div>
@@ -303,22 +392,22 @@ export default function Reports() {
       {/* Tab Navigation */}
       <div className="tab-navigation">
         <button
-          className={activeTab === 'overview' ? 'tab-button active' : 'tab-button'}
+          className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📈 Overview
+          Overview
         </button>
         <button
-          className={activeTab === 'attendance' ? 'tab-button active' : 'tab-button'}
+          className={`tab-button ${activeTab === 'attendance' ? 'active' : ''}`}
           onClick={() => setActiveTab('attendance')}
         >
-          👥 Attendance
+          Attendance
         </button>
         <button
-          className={activeTab === 'leaves' ? 'tab-button active' : 'tab-button'}
+          className={`tab-button ${activeTab === 'leaves' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaves')}
         >
-          🏖️ Leaves
+          Leaves
         </button>
       </div>
 
@@ -394,43 +483,60 @@ export default function Reports() {
 
           <div className="table-container">
             <h3>Detailed Attendance Report</h3>
-            <table className="report-table">
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Present</th>
-                  <th>Absent</th>
-                  <th>Leave</th>
-                  <th>Total</th>
-                  <th>Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map(emp => {
-                  const empAttendance = attendance.filter(a => a.employee_id === emp.id);
-                  const present = empAttendance.filter(a => a.status === 'Present').length;
-                  const absent = empAttendance.filter(a => a.status === 'Absent').length;
-                  const leave = empAttendance.filter(a => a.status === 'Leave').length;
-                  const total = present + absent + leave;
-                  const rate = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+            <div className="table-wrapper">
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Leave</th>
+                    <th>Total</th>
+                    <th>Rate</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map(emp => {
+                    const empAttendance = attendance.filter(a => a.employee_id === emp.id);
+                    const present = empAttendance.filter(a => a.status === 'Present').length;
+                    const absent = empAttendance.filter(a => a.status === 'Absent').length;
+                    const leave = empAttendance.filter(a => a.status === 'Leave').length;
+                    const total = present + absent + leave;
+                    const rate = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
 
-                  return (
-                    <tr key={emp.id}>
-                      <td>{emp.name}</td>
-                      <td className="present">{present}</td>
-                      <td className="absent">{absent}</td>
-                      <td className="leave">{leave}</td>
-                      <td>{total}</td>
-                      <td>
-                        <span className={`rate-badge ${rate >= 80 ? 'good' : rate >= 60 ? 'average' : 'poor'}`}>
-                          {rate}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={emp.id}>
+                        <td>
+                          <div className="employee-info">
+                            <span className="employee-name">{emp.name}</span>
+                            <span className="employee-id">ID: {emp.employee_id || emp.id}</span>
+                          </div>
+                        </td>
+                        <td className="present">{present}</td>
+                        <td className="absent">{absent}</td>
+                        <td className="leave">{leave}</td>
+                        <td>{total}</td>
+                        <td>
+                          <span className={`rate-badge ${rate >= 80 ? 'good' : rate >= 60 ? 'average' : 'poor'}`}>
+                            {rate}%
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => generateEmployeePDF(emp)}
+                            className="pdf-btn"
+                            title="Generate PDF Report"
+                          >
+                            📄 PDF
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -446,15 +552,15 @@ export default function Reports() {
           </div>
 
           <div className="stats-row">
-            <div className="mini-stat">
+            <div className="mini-stat pending">
               <span className="mini-stat-value">{stats.pendingLeaves}</span>
               <span className="mini-stat-label">Pending</span>
             </div>
-            <div className="mini-stat">
+            <div className="mini-stat approved">
               <span className="mini-stat-value">{stats.approvedLeaves}</span>
               <span className="mini-stat-label">Approved</span>
             </div>
-            <div className="mini-stat">
+            <div className="mini-stat rejected">
               <span className="mini-stat-value">{stats.rejectedLeaves}</span>
               <span className="mini-stat-label">Rejected</span>
             </div>
@@ -462,46 +568,48 @@ export default function Reports() {
 
           <div className="table-container">
             <h3>Leave Requests Details</h3>
-            <table className="report-table">
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Leave Type</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Days</th>
-                  <th>Status</th>
-                  <th>Applied On</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaveRequests.map(leave => {
-                  const startDate = new Date(leave.start_date);
-                  const endDate = new Date(leave.end_date);
-                  const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            <div className="table-wrapper">
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Applied On</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveRequests.map(leave => {
+                    const startDate = new Date(leave.start_date);
+                    const endDate = new Date(leave.end_date);
+                    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
-                  return (
-                    <tr key={leave.id}>
-                      <td>{leave.employees?.name || 'Unknown'}</td>
-                      <td>
-                        <span className="leave-type-badge">
-                          {leave.leave_type}
-                        </span>
-                      </td>
-                      <td>{new Date(leave.start_date).toLocaleDateString()}</td>
-                      <td>{new Date(leave.end_date).toLocaleDateString()}</td>
-                      <td>{days}</td>
-                      <td>
-                        <span className={`status-badge ${leave.status}`}>
-                          {leave.status}
-                        </span>
-                      </td>
-                      <td>{new Date(leave.created_at).toLocaleDateString()}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={leave.id}>
+                        <td>{leave.employees?.name || 'Unknown'}</td>
+                        <td>
+                          <span className="leave-type-badge">
+                            {leave.leave_type}
+                          </span>
+                        </td>
+                        <td>{new Date(leave.start_date).toLocaleDateString()}</td>
+                        <td>{new Date(leave.end_date).toLocaleDateString()}</td>
+                        <td>{days}</td>
+                        <td>
+                          <span className={`status-badge ${leave.status}`}>
+                            {leave.status}
+                          </span>
+                        </td>
+                        <td>{new Date(leave.created_at).toLocaleDateString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -2,67 +2,141 @@
   position: fixed;
   left: 0;
   top: 0;
-  width: 220px;
+  width: 220px; /* Reduced from 240px */
   height: 100vh;
-  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(180deg, #81d4fa 0%, #4fc3f7 30%, #29b6f6 70%, #0288d1 100%);
   color: white;
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 4px 0 15px rgba(129, 212, 250, 0.25); /* Reduced shadow */
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+.sidebar > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Header with Logo Support - More Compact */
 .sidebar-header {
-  padding: 2rem 1rem;
+  padding: 1.5rem 0.75rem; /* Reduced padding */
   text-align: center;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
+.company-logo {
+  margin-bottom: 0.75rem; /* Reduced margin */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 45px; /* Reduced height */
+}
+
+.logo-image {
+  max-width: 110px; /* Reduced size */
+  max-height: 80px;
+  width: auto;
+  height: auto;
+  border-radius: 6px; /* Reduced border radius */
+  
+  transition: all 0.3s ease;
+}
+
+.logo-image:hover {
+  transform: scale(1.02); /* Reduced hover scale */
+  
+}
+
+.logo-fallback {
+  display: none;
+  font-size: 2rem; /* Reduced size */
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* EMOJI FIX */
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ecf0f1;
-  letter-spacing: 1px;
+  font-size: 1.5rem; /* Reduced from 1.75rem */
+  font-weight: 800;
+  color: white !important;
+  letter-spacing: 1.5px; /* Reduced spacing */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
 }
 
 .sidebar-header p {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.7);
+  margin: 0.4rem 0 0 0; /* Reduced margin */
+  font-size: 0.75rem; /* Reduced from 0.8rem */
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Navigation - More Compact */
 .sidebar-nav {
   flex: 1;
-  padding: 1rem 0;
+  padding: 1rem 0; /* Reduced padding */
   overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  margin: 0.25rem 0.5rem;
-  color: rgba(255,255,255,0.8);
+  padding: 0.8rem 1rem; /* Reduced padding */
+  margin: 0.3rem 0.5rem; /* Reduced margin */
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px; /* Reduced border radius */
   transition: all 0.3s ease;
   position: relative;
-  font-size: 0.9rem;
+  font-size: 0.9rem; /* Reduced font size */
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  border: 1px solid transparent;
 }
 
+/* SUBTLE HOVER - Removed Excessive Green Glow */
 .nav-item:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.12); /* More subtle background */
   color: white;
-  transform: translateX(4px);
+  transform: translateX(4px); /* Reduced transform */
+  border-color: rgba(255, 255, 255, 0.15); /* Subtle border */
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.08); /* Much more subtle shadow */
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
   color: white;
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15); /* Reduced shadow */
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateX(6px); /* Reduced transform */
 }
 
 .nav-item.active::before {
@@ -71,123 +145,290 @@
   left: -0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: 3px; /* Reduced width */
   height: 60%;
-  background: #ecf0f1;
+  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.8)); /* Changed to white */
   border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(255, 255, 255, 0.3); /* Reduced shadow */
 }
 
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px; /* Reduced size */
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6); /* Much more subtle glow */
+}
+
+/* Icon Enhancement - More Compact */
 .nav-icon {
-  font-size: 1.2rem;
-  width: 24px;
+  font-size: 1.2rem; /* Reduced from 1.3rem */
+  width: 24px; /* Reduced width */
   text-align: center;
-  margin-right: 0.75rem;
+  margin-right: 0.8rem; /* Reduced margin */
   flex-shrink: 0;
+  transition: all 0.3s ease;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.08); /* Reduced scale */
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.2)); /* Much more subtle */
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.1); /* Reduced scale */
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.3)); /* More subtle */
 }
 
 .nav-label {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Enhanced Logout Button Styling */
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  text-align: center;
+  border-top: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
-.app-version {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
+.logout-btn {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(229, 57, 53, 0.9));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 12px rgba(244, 67, 54, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, rgba(229, 57, 53, 1), rgba(211, 47, 47, 1));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.5);
+}
+
+.user-info {
+  margin-bottom: 0.5rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info small {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
-/* Scrollbar Styling */
+.app-version {
+  font-size: 0.75rem; /* Reduced size */
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin-bottom: 0.4rem; /* Reduced margin */
+  padding: 0.3rem 0.6rem; /* Reduced padding */
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: inline-block;
+  letter-spacing: 0.3px;
+}
+
+.company-info {
+  font-size: 0.65rem; /* Reduced size */
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Scrollbar Styling - More Compact */
 .sidebar-nav::-webkit-scrollbar {
-  width: 4px;
+  width: 4px; /* Reduced width */
 }
 
 .sidebar-nav::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
+  margin: 0.5rem 0;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.3);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15));
   border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
 }
 
-/* Responsive Design */
+/* Responsive Design - Updated for Smaller Sizes */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 180px; /* Further reduced */
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
+    width: 160px; /* Even more compact */
   }
   
   .nav-item {
-    padding: 0.6rem 1rem;
+    padding: 0.7rem 0.8rem;
     font-size: 0.85rem;
+    margin: 0.25rem 0.4rem;
   }
   
   .nav-icon {
     font-size: 1.1rem;
-    margin-right: 0.6rem;
+    margin-right: 0.7rem;
+    width: 20px;
+  }
+  
+  .sidebar-header {
+    padding: 1.25rem 0.6rem;
+  }
+  
+  .company-logo {
+    height: 40px;
+    margin-bottom: 0.6rem;
+  }
+  
+  .logo-image,
+  .logo-fallback {
+    max-width: 35px;
+    max-height: 35px;
+    width: 35px;
+    height: 35px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.3rem;
   }
 }
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 180px;
+    width: 140px; /* Very compact for mobile */
   }
   
   .sidebar-header {
-    padding: 1.5rem 0.75rem;
+    padding: 1rem 0.5rem;
   }
   
   .nav-item {
-    padding: 0.5rem 0.75rem;
-    margin: 0.2rem 0.4rem;
+    padding: 0.6rem 0.7rem;
+    margin: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+  }
+  
+  .nav-icon {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    width: 18px;
+  }
+  
+  .nav-label {
+    font-size: 0.8rem;
+  }
+  
+  .company-logo {
+    height: 35px;
+    margin-bottom: 0.4rem;
+  }
+  
+  .logo-image,
+  .logo-fallback {
+    max-width: 30px;
+    max-height: 30px;
+    width: 30px;
+    height: 30px;
+  }
+  
+  .logo-fallback {
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+  
+  .sidebar-header p {
+    font-size: 0.7rem;
+  }
+  
+  .logout-btn {
+    padding: 0.7rem 0.8rem;
     font-size: 0.8rem;
   }
 }
 
-/* Animation for better UX */
-.nav-item {
-  animation: slideIn 0.3s ease-out;
-}
-
-.nav-item:nth-child(1) { animation-delay: 0.1s; }
-.nav-item:nth-child(2) { animation-delay: 0.2s; }
-.nav-item:nth-child(3) { animation-delay: 0.3s; }
-.nav-item:nth-child(4) { animation-delay: 0.4s; }
-.nav-item:nth-child(5) { animation-delay: 0.5s; }
-.nav-item:nth-child(6) { animation-delay: 0.6s; }
-.nav-item:nth-child(7) { animation-delay: 0.7s; }
-.nav-item:nth-child(8) { animation-delay: 0.8s; }
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+/* Remove excessive animations for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .company-logo,
+  .logo-image,
+  .logout-btn {
+    animation: none;
+    transition: none;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .nav-item:hover,
+  .logout-btn:hover {
+    transform: none;
   }
 }
 
-.nav-item:hover .nav-icon {
-  transform: scale(1.1);
-  transition: transform 0.2s ease;
-}
-
-.nav-item:focus {
-  outline: 2px solid #3498db;
-  outline-offset: 2px;
+/* Enhanced gradient overlay - More subtle */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(129, 212, 250, 0.05) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(165, 214, 167, 0.05) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
 }

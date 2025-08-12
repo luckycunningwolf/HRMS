@@ -1,9 +1,18 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
+import logo from '../assets/logo.png';
 
 export default function Sidebar() {
   const location = useLocation();
+  const { signOut, user } = useAuth();
+
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      await signOut();
+    }
+  };
 
   const menuItems = [
     { path: '/', icon: '🏠', label: 'Dashboard' },
@@ -13,6 +22,7 @@ export default function Sidebar() {
     { path: '/performance', icon: '🎯', label: 'Performance' },
     { path: '/reports', icon: '📈', label: 'Reports' },
     { path: '/recruitment', icon: '📝', label: 'Recruitment' },
+    { path: '/exit-formalities', icon: '🚪', label: 'Exit Formalities' },
     { path: '/payroll', icon: '💰', label: 'Payroll Management' },
     { path: '/security', icon: '🔐', label: 'Security' }
   ];
@@ -20,8 +30,25 @@ export default function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2>🏢 HRMS</h2>
-        <p>Human Resource Management System</p>
+        <div className="company-logo">
+          <img 
+            src={logo}
+            alt="Company Logo" 
+            className="logo-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+          <div className="logo-fallback">🏢</div>
+        </div>
+        <h2>HRMS</h2>
+        <p>Amsis Engineering</p>
+        {user && (
+          <div className="user-info">
+            <small>{user.email}</small>
+          </div>
+        )}
       </div>
       
       <nav className="sidebar-nav">
@@ -42,7 +69,11 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
+        <button onClick={handleLogout} className="logout-btn">
+          🚪 Logout
+        </button>
         <div className="app-version">v1.0.0</div>
+        <div className="company-info">HR Management System</div>
       </div>
     </div>
   );

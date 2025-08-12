@@ -105,15 +105,6 @@ export default function EmployeeDirectory() {
     }
   };
 
-  const handleStatusToggle = async (employee) => {
-    try {
-      const newStatus = !employee.is_active;
-      await handleEmployeeUpdate({ ...employee, is_active: newStatus });
-    } catch (error) {
-      console.error('Error toggling employee status:', error);
-    }
-  };
-
   const getEmployeeInitials = (name) => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??';
   };
@@ -131,7 +122,7 @@ export default function EmployeeDirectory() {
     <div className="employee-directory">
       <div className="directory-header">
         <div className="header-left">
-          <h1>👥 Employee Directory</h1>
+          <h1>Employee Directory</h1>
           <p>Manage and view all employee information</p>
         </div>
         <div className="header-right">
@@ -139,7 +130,7 @@ export default function EmployeeDirectory() {
             className="add-employee-btn"
             onClick={() => window.location.href = '/recruitment'}
           >
-            <span className="btn-icon">➕</span>
+            <span className="btn-icon">+</span>
             Add Employee
           </button>
         </div>
@@ -216,13 +207,13 @@ export default function EmployeeDirectory() {
           </span>
           <div className="quick-stats">
             <span className="stat-item">
-              👤 {employees.filter(emp => emp.is_active).length} Active
+              {employees.filter(emp => emp.is_active).length} Active
             </span>
             <span className="stat-item">
-              🏢 {departments.length} Departments
+              {departments.length} Departments
             </span>
             <span className="stat-item">
-              💼 {roles.length} Roles
+              {roles.length} Roles
             </span>
           </div>
         </div>
@@ -230,62 +221,112 @@ export default function EmployeeDirectory() {
 
       <div className={`employees-container ${viewMode}`}>
         {filteredEmployees.length > 0 ? (
-          filteredEmployees.map(employee => (
-            <div key={employee.id} className="employee-card">
-              <div className="employee-avatar">
-                <span className="avatar-text">
-                  {getEmployeeInitials(employee.name)}
-                </span>
-                <div className={`status-indicator ${employee.is_active ? 'active' : 'inactive'}`}></div>
+          viewMode === 'list' ? (
+            // List View - Horizontal list without cards or avatars
+            <div className="employees-list-container">
+              <div className="list-header">
+                <div className="list-col-name">Name</div>
+                <div className="list-col-role">Role</div>
+                <div className="list-col-department">Department</div>
+                <div className="list-col-email">Email</div>
+                <div className="list-col-status">Status</div>
+                <div className="list-col-joining">Joined</div>
+                <div className="list-col-actions">Actions</div>
               </div>
-              
-              <div className="employee-info">
-                <h3 className="employee-name">{employee.name}</h3>
-                <p className="employee-role">{employee.role}</p>
-                <p className="employee-department">{employee.department}</p>
-                <p className="employee-email">{employee.email}</p>
+              {filteredEmployees.map(employee => (
+                <div key={employee.id} className="employee-list-item">
+                  <div className="list-col-name">
+                    <div className="employee-name-info">
+                      <span className="name">{employee.name}</span>
+                      <span className="employee-id">ID: {employee.employee_id}</span>
+                    </div>
+                  </div>
+                  <div className="list-col-role">{employee.role}</div>
+                  <div className="list-col-department">{employee.department}</div>
+                  <div className="list-col-email">{employee.email}</div>
+                  <div className="list-col-status">
+                    <span className={`status-pill ${employee.is_active ? 'active' : 'inactive'}`}>
+                      {employee.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div className="list-col-joining">
+                    <span className="join-date">{formatDateToDDMMYYYY(employee.joining_date)}</span>
+                    <span className="tenure">{calculateTenureFromJoining(employee.joining_date)}</span>
+                  </div>
+                  <div className="list-col-actions">
+                    <button
+                      className="list-action-btn view"
+                      onClick={() => setSelectedEmployee(employee)}
+                      title="View Details"
+                    >
+                      View
+                    </button>
+                    <button
+                      className="list-action-btn edit"
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setShowEditModal(true);
+                      }}
+                      title="Edit Employee"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Grid View - Cards with avatars (existing functionality)
+            filteredEmployees.map(employee => (
+              <div key={employee.id} className="employee-card">
+                <div className="employee-avatar">
+                  <span className="avatar-text">
+                    {getEmployeeInitials(employee.name)}
+                  </span>
+                  <div className={`status-indicator ${employee.is_active ? 'active' : 'inactive'}`}></div>
+                </div>
                 
-                <div className="employee-meta">
-                  <span className="joining-date">
-                    📅 Joined {formatDateToDDMMYYYY(employee.joining_date)}
-                  </span>
-                  <span className="tenure">
-                    ⏱️ {calculateTenureFromJoining(employee.joining_date)} tenure
-                  </span>
-                  <span className="employee-id">
-                    🆔 {employee.employee_id}
-                  </span>
+                <div className="employee-info">
+                  <h3 className="employee-name">{employee.name}</h3>
+                  <p className="employee-role">{employee.role}</p>
+                  <p className="employee-department">{employee.department}</p>
+                  <p className="employee-email">{employee.email}</p>
+                  
+                  <div className="employee-meta">
+                    <span className="joining-date">
+                      Joined {formatDateToDDMMYYYY(employee.joining_date)}
+                    </span>
+                    <span className="tenure">
+                      {calculateTenureFromJoining(employee.joining_date)} tenure
+                    </span>
+                    <span className="employee-id">
+                      ID: {employee.employee_id}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="employee-actions">
+                  <button
+                    className="action-btn view"
+                    onClick={() => setSelectedEmployee(employee)}
+                    title="View Details"
+                  >
+                    View
+                  </button>
+                  <button
+                    className="action-btn edit"
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      setShowEditModal(true);
+                    }}
+                    title="Edit Employee"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
-
-              <div className="employee-actions">
-                <button
-                  className="action-btn view"
-                  onClick={() => setSelectedEmployee(employee)}
-                  title="View Details"
-                >
-                  👁️
-                </button>
-                <button
-                  className="action-btn edit"
-                  onClick={() => {
-                    setSelectedEmployee(employee);
-                    setShowEditModal(true);
-                  }}
-                  title="Edit Employee"
-                >
-                  ✏️
-                </button>
-                <button
-                  className={`action-btn toggle ${employee.is_active ? 'active' : 'inactive'}`}
-                  onClick={() => handleStatusToggle(employee)}
-                  title={employee.is_active ? 'Deactivate' : 'Activate'}
-                >
-                  {employee.is_active ? '🔴' : '🟢'}
-                </button>
-              </div>
-            </div>
-          ))
+            ))
+          )
         ) : (
           <div className="empty-state">
             <div className="empty-icon">👥</div>
