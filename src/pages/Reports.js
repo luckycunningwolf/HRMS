@@ -288,6 +288,12 @@ export default function Reports() {
 
   const employeeAttendanceData = getEmployeeAttendanceData();
 
+  const exportToPDF = (columns, data, filename) => {
+    const doc = new jsPDF();
+    autoTable(doc, { head: [columns], body: data });
+    doc.save(`${filename}.pdf`);
+  };
+
   // Export to CSV function
   const exportToCSV = (data, filename) => {
     const csvContent = data.map(row => Object.values(row).join(',')).join('\n');
@@ -469,9 +475,37 @@ export default function Reports() {
         <div className="tab-content">
           <div className="section-header">
             <h2>Attendance Analytics</h2>
-            <button onClick={exportAttendanceReport} className="export-btn">
-              📥 Export CSV
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => {
+                  const columns = [
+                    'Employee Name',
+                    'Employee Email',
+                    'Total Days',
+                    'Present Days',
+                    'Absent Days',
+                    'Leave Days',
+                    'Attendance Rate (%)'
+                  ];
+                  const data = employees.map(emp => {
+                    const empAttendance = attendance.filter(a => a.employee_id === emp.id);
+                    const present = empAttendance.filter(a => a.status === 'Present').length;
+                    const absent = empAttendance.filter(a => a.status === 'Absent').length;
+                    const leave = empAttendance.filter(a => a.status === 'Leave').length;
+                    const total = present + absent + leave;
+                    const rate = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+                    return [emp.name, emp.email, total, present, absent, leave, rate];
+                  });
+                  exportToPDF(columns, data, `attendance-report-${selectedMonth}`);
+                }}
+                className="export-btn"
+              >
+                📄 Export PDF
+              </button>
+              <button onClick={exportAttendanceReport} className="export-btn">
+                📥 Export CSV
+              </button>
+            </div>
           </div>
 
           <div className="chart-card full-width">
@@ -546,9 +580,24 @@ export default function Reports() {
         <div className="tab-content">
           <div className="section-header">
             <h2>Leave Management Reports</h2>
-            <button onClick={exportLeaveReport} className="export-btn">
-              📥 Export CSV
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => {
+                  const columns = ['Employee Name', 'Start Date', 'End Date', 'Reason', 'Status'];
+                  const data = leaveRequests.map(l => {
+                    const emp = employees.find(e => e.id === l.employee_id);
+                    return [emp ? emp.name : 'N/A', new Date(l.start_date).toLocaleDateString(), new Date(l.end_date).toLocaleDateString(), l.reason, l.status];
+                  });
+                  exportToPDF(columns, data, `leave-report-${selectedMonth}`);
+                }}
+                className="export-btn"
+              >
+                📄 Export PDF
+              </button>
+              <button onClick={exportLeaveReport} className="export-btn">
+                📥 Export CSV
+              </button>
+            </div>
           </div>
 
           <div className="stats-row">

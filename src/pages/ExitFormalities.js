@@ -220,7 +220,26 @@ export default function ExitFormalities() {
         .eq('id', exitId);
 
       if (error) throw error;
-      fetchExitRequests();
+
+      // Manually update the local state to reflect the change immediately
+      const updatedRequests = exitRequests.map(req => 
+        req.id === exitId 
+          ? { ...req, clearances: { ...req.clearances, [clearanceField]: value } }
+          : req
+      );
+      setExitRequests(updatedRequests);
+
+      // Also update the selectedEmployee if it's the one being edited
+      if (selectedEmployee && selectedEmployee.id === exitId) {
+        setSelectedEmployee(prev => ({
+          ...prev,
+          clearances: {
+            ...prev.clearances,
+            [clearanceField]: value
+          }
+        }));
+      }
+
     } catch (error) {
       console.error('Error updating clearance:', error);
       alert('Error updating clearance: ' + error.message);
@@ -420,7 +439,8 @@ export default function ExitFormalities() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="exit-form">
+            <div className="modal-body">
+              <form onSubmit={handleSubmit} className="exit-form">
               <div className="form-section">
                 <h3>Employee Information</h3>
                 <div className="form-grid">
@@ -610,6 +630,7 @@ export default function ExitFormalities() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

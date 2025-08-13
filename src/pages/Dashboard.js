@@ -402,7 +402,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="metric-card success">
+        <div className="metric-card primary">
           <div className="metric-header">
             <div className="metric-icon">✅</div>
             <div className="metric-title">Present Today</div>
@@ -416,7 +416,7 @@ export default function Dashboard() {
           <div className="metric-progress">
             <div className="progress-bar">
               <div 
-                className="progress-fill success" 
+                className="progress-fill" 
                 style={{ width: `${dashboardData.quickStats.monthlyAttendanceRate}%` }}
               ></div>
             </div>

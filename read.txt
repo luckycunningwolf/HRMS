@@ -1,0 +1,6 @@
+git push / pull instructions :
+git add . 
+git commit -m "msg" 
+git push 
+
+git pull 
