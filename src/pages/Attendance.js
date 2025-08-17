@@ -17,7 +17,7 @@ export default function Attendance() {
   const [summaries, setSummaries] = useState({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState('mark'); // 'mark', 'history', 'analytics'
+  const [viewMode, setViewMode] = useState('mark');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [bulkAction, setBulkAction] = useState('');
   const [selectedEmployees, setSelectedEmployees] = useState(new Set());
@@ -41,11 +41,9 @@ export default function Attendance() {
     }
   }, [selectedDate, selectedMonth, viewMode]);
 
-  // FIXED: Back to your original working database query
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      // Using the exact same query as your original working code
       const { data, error } = await supabase.from('employees').select('id, name');
       if (error) {
         console.error('Error fetching employees:', error);
@@ -61,19 +59,24 @@ export default function Attendance() {
 
   const checkExistingAttendance = async () => {
     try {
+      // Get the latest attendance record for each employee on the selected date
       const { data, error } = await supabase
         .from('attendance')
-        .select('employee_id, status')
-        .eq('date', selectedDate);
+        .select('employee_id, status, created_at')
+        .eq('date', selectedDate)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error checking existing attendance:', error);
         return;
       }
 
+      // Get the most recent status for each employee
       const existingData = {};
       data?.forEach(record => {
-        existingData[record.employee_id] = record.status;
+        if (!existingData[record.employee_id]) {
+          existingData[record.employee_id] = record.status;
+        }
       });
       setAttendanceData(existingData);
     } catch (error) {
@@ -113,12 +116,11 @@ export default function Attendance() {
       const to = new Date(from);
       to.setMonth(to.getMonth() + 1);
 
-      // Using the exact same query structure as your original code
       const { data, error } = await supabase
         .from('attendance')
         .select('id, date, status, employee_id, created_at')
         .gte('date', from.toISOString().split('T')[0])
-        .lt('date', to.toISOString().split('T')[0]);
+        .lt('date', to.toISOString().split('T'));
 
       if (error) {
         console.error('Error fetching history:', error);
@@ -141,12 +143,11 @@ export default function Attendance() {
       const to = new Date(from);
       to.setMonth(to.getMonth() + 1);
       
-      // Using simple query like your original, then we'll match employee data manually
       const { data, error } = await supabase
         .from('attendance')
         .select('employee_id, status, date, created_at')
         .gte('date', from.toISOString().split('T')[0])
-        .lt('date', to.toISOString().split('T')[0]);
+        .lt('date', to.toISOString().split('T'));
 
       if (error) {
         console.error('Error fetching analytics:', error);
@@ -161,7 +162,6 @@ export default function Attendance() {
     }
   };
 
-  // Using the exact same generateSummaries function as your original code
   const generateSummaries = (records) => {
     const summaryMap = {};
     records.forEach(({ employee_id, status, created_at }) => {
@@ -184,7 +184,6 @@ export default function Attendance() {
       }
     });
 
-    // Format the timestamp using IST
     for (const id in summaryMap) {
       summaryMap[id].lastUpdated = getTimeAgoIST(summaryMap[id].lastUpdated);
     }
@@ -204,14 +203,12 @@ export default function Attendance() {
       leastActiveDay: ''
     };
 
-    // Basic counts
     const employeeStats = {};
     const dailyRecords = {};
 
     records.forEach(({ employee_id, status, date }) => {
       analytics.statusBreakdown[status] = (analytics.statusBreakdown[status] || 0) + 1;
 
-      // Employee individual stats
       if (!employeeStats[employee_id]) {
         const employee = employees.find(emp => emp.id === employee_id);
         employeeStats[employee_id] = {
@@ -225,10 +222,8 @@ export default function Attendance() {
       employeeStats[employee_id][status] += 1;
       employeeStats[employee_id].total += 1;
 
-      // Daily records
       dailyRecords[date] = (dailyRecords[date] || 0) + 1;
 
-      // Weekly trends
       const weekDay = new Date(date).toLocaleDateString('en-US', { 
         weekday: 'long',
         timeZone: 'Asia/Kolkata'
@@ -236,7 +231,6 @@ export default function Attendance() {
       analytics.weeklyTrends[weekDay] = (analytics.weeklyTrends[weekDay] || 0) + 1;
     });
 
-    // Find top performers (highest attendance rate)
     analytics.topPerformers = Object.entries(employeeStats)
       .map(([id, stats]) => ({
         ...stats,
@@ -246,24 +240,22 @@ export default function Attendance() {
       .sort((a, b) => b.attendanceRate - a.attendanceRate)
       .slice(0, 5);
 
-    // Calculate average attendance rate
     const rates = Object.values(employeeStats)
       .map(emp => emp.total > 0 ? (emp.Present / emp.total) * 100 : 0);
     analytics.averageAttendanceRate = rates.length > 0 
       ? (rates.reduce((sum, rate) => sum + rate, 0) / rates.length).toFixed(1)
       : 0;
 
-    // Find most and least active days
     const sortedDays = Object.entries(dailyRecords)
       .sort((a, b) => b[1] - a[1]);
     
     if (sortedDays.length > 0) {
       analytics.mostActiveDay = {
-        date: formatDateToDDMMYYYY(sortedDays[0][0]),
-        count: sortedDays[0][1]
+        date: formatDateToDDMMYYYY(sortedDays),
+        count: sortedDays[1]
       };
       analytics.leastActiveDay = {
-        date: formatDateToDDMMYYYY(sortedDays[sortedDays.length - 1][0]),
+        date: formatDateToDDMMYYYY(sortedDays[sortedDays.length - 1]),
         count: sortedDays[sortedDays.length - 1][1]
       };
     }
@@ -322,44 +314,88 @@ export default function Attendance() {
     });
   };
 
-  // Using the exact same handleSubmit function as your original code
-const handleSubmit = async () => {
-  const entries = Object.entries(attendanceData).map(([employee_id, status]) => ({
-    employee_id,
-    status,
-    date: selectedDate,
-  }));
+  // FIXED: Updated handleSubmit function
+  const handleSubmit = async () => {
+    const entries = Object.entries(attendanceData).map(([employee_id, status]) => ({
+      employee_id: parseInt(employee_id), // Ensure employee_id is integer
+      status,
+      date: selectedDate,
+      notes: 'Marked via admin portal',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
 
-  if (entries.length === 0) {
-    alert('Please mark attendance for at least one employee.');
-    return;
-  }
+    if (entries.length === 0) {
+      alert('Please mark attendance for at least one employee.');
+      return;
+    }
 
-  try {
-    setSubmitting(true);
+    try {
+      setSubmitting(true);
 
-    // Use upsert to handle duplicates - this will update existing records or insert new ones
-    const { error } = await supabase
-      .from('attendance')
-      .upsert(entries, { 
-        onConflict: 'employee_id,date',
-        ignoreDuplicates: false 
-      });
+      // Method 1: Simple insert (allows multiple records per day)
+      const { error } = await supabase
+        .from('attendance')
+        .insert(entries);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    alert(`Attendance saved for ${entries.length} employees!`);
-    setAttendanceData({});
-    setSelectedEmployees(new Set());
-    fetchEmployeeLastUpdated(); // Refresh last updated info
-  } catch (error) {
-    console.error('Error saving attendance:', error);
-    alert('Error saving attendance: ' + error.message);
-  } finally {
-    setSubmitting(false);
-  }
-};
+      alert(`Attendance saved for ${entries.length} employees!`);
+      setAttendanceData({});
+      setSelectedEmployees(new Set());
+      fetchEmployeeLastUpdated(); // Refresh last updated info
+      
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      
+      // If you want to handle duplicates manually, use this approach:
+      if (error.message.includes('duplicate') || error.code === '23505') {
+        try {
+          // Check for existing records and update/insert accordingly
+          for (const entry of entries) {
+            const { data: existing } = await supabase
+              .from('attendance')
+              .select('id')
+              .eq('employee_id', entry.employee_id)
+              .eq('date', entry.date)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
 
+            if (existing) {
+              // Update the most recent record
+              await supabase
+                .from('attendance')
+                .update({
+                  status: entry.status,
+                  notes: entry.notes + ' (Updated)',
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', existing.id);
+            } else {
+              // Insert new record
+              await supabase
+                .from('attendance')
+                .insert([entry]);
+            }
+          }
+          
+          alert(`Attendance updated for ${entries.length} employees!`);
+          setAttendanceData({});
+          setSelectedEmployees(new Set());
+          fetchEmployeeLastUpdated();
+          
+        } catch (updateError) {
+          console.error('Error during manual upsert:', updateError);
+          alert('Error saving attendance: ' + updateError.message);
+        }
+      } else {
+        alert('Error saving attendance: ' + error.message);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const getStatusStats = () => {
     const marked = Object.values(attendanceData).filter(Boolean).length;
@@ -588,7 +624,6 @@ const handleSubmit = async () => {
                     </button>
                   </div>
 
-                  {/* FIXED: Last Updated Info instead of useless summary */}
                   <div className="last-updated-info">
                     <span>Last updated: {
                       employeeLastUpdated[emp.id] 
