@@ -39,21 +39,64 @@ export default function ExpenseApproval() {
     calculateStats();
   }, [expenses, selectedStatus, searchTerm]);
 
-  const fetchExpenses = async () => {
+    const fetchExpenses = async () => {
     try {
       setLoading(true);
+      console.log('🚀 Fetching expenses...');
+      
+      // Simple query first
       const { data, error } = await supabase
         .from('expenses')
-        .select(`
-          *,
-          employees!expenses_employee_id_fkey(name, email, role, department)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setExpenses(data || []);
+      console.log('📊 Raw expense data:', data);
+      console.log('❌ Any errors:', error);
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // If we got data, manually fetch employee info
+      if (data && data.length > 0) {
+        const expensesWithEmployees = [];
+        
+        for (const expense of data) {
+          let employeeInfo = null;
+          
+          if (expense.employee_id) {
+            const { data: empData } = await supabase
+              .from('employees')
+              .select('name, email, role, department')
+              .eq('id', expense.employee_id)
+              .single();
+            
+            employeeInfo = empData;
+          }
+          
+          expensesWithEmployees.push({
+            ...expense,
+            employees: employeeInfo || {
+              name: 'Unknown Employee',
+              email: 'unknown@company.com',
+              role: 'Employee',
+              department: 'General'
+            }
+          });
+        }
+        
+        console.log('✅ Final expenses with employees:', expensesWithEmployees);
+        setExpenses(expensesWithEmployees);
+      } else {
+        console.log('📭 No expense data found');
+        setExpenses([]);
+      }
+
     } catch (error) {
-      console.error('Error fetching expenses:', error);
+      console.error('💥 Fetch expenses error:', error);
+      alert(`Error loading expenses: ${error.message}`);
+      setExpenses([]);
     } finally {
       setLoading(false);
     }

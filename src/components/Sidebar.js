@@ -23,7 +23,6 @@ export default function Sidebar() {
     { path: '/reports', icon: '📈', label: 'Reports' },
     { path: '/expenses', icon: '💰', label: 'Expense Approval' },
     { path: '/goals', icon: '🎯', label: 'Goals & KPI' }, // Added this line
-    { path: '/reports', icon: '📊', label: 'Reports' },
     { path: '/recruitment', icon: '📝', label: 'Recruitment' },
     { path: '/exit-formalities', icon: '🚪', label: 'Exit Formalities' },
     { path: '/payroll', icon: '💰', label: 'Payroll Management' },
