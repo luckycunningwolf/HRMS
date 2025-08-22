@@ -171,6 +171,24 @@ export default function Dashboard() {
       .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) || [];
   };
 
+  const updateLeaveStatus = async (id, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({ status: newStatus })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      alert(`Leave request ${newStatus}!`);
+      fetchDashboardData(); // Refresh the dashboard data
+      
+    } catch (error) {
+      console.error('Error updating leave status:', error);
+      alert('Error updating leave status: ' + error.message);
+    }
+  };
+
   const generateAlerts = (employees, attendance, leaves) => {
     const alerts = [];
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -490,8 +508,26 @@ export default function Dashboard() {
                         </small>
                       </div>
                       <div className="approval-actions">
-                        <button className="approve-btn" title="Approve">✓</button>
-                        <button className="reject-btn" title="Reject">✗</button>
+                        <button 
+                          className="approve-btn" 
+                          title="Approve"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateLeaveStatus(leave.id, 'approved');
+                          }}
+                        >
+                          ✓
+                        </button>
+                        <button 
+                          className="reject-btn" 
+                          title="Reject"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateLeaveStatus(leave.id, 'rejected');
+                          }}
+                        >
+                          ✗
+                        </button>
                       </div>
                     </div>
                   ))}
