@@ -20,7 +20,8 @@ export default function Sidebar() {
     { path: '/attendance', icon: '📊', label: 'Attendance' },
     { path: '/leaves', icon: '🏖️', label: 'Leave Management' },
     { path: '/performance', icon: '🎯', label: 'Performance' },
-    { path: '/reports', icon: '📈', label: 'Reports' },
+    { path: '/goals', icon: '🎯', label: 'Goals & KPI' }, // Added this line
+    { path: '/reports', icon: '📊', label: 'Reports' },
     { path: '/recruitment', icon: '📝', label: 'Recruitment' },
     { path: '/exit-formalities', icon: '🚪', label: 'Exit Formalities' },
     { path: '/payroll', icon: '💰', label: 'Payroll Management' },

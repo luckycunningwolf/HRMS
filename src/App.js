@@ -11,6 +11,7 @@ import Performance from './pages/Performance';
 import Reports from './pages/Reports';
 import Recruitment from './pages/Recruitment';
 import ExitFormalities from './pages/ExitFormalities';
+import GoalsKPI from './pages/GoalsKPI'; 
 import './App.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/performance" element={<Performance />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/recruitment" element={<Recruitment />} />
+                 <Route path="/goals" element={<GoalsKPI />} />
                 <Route path="/exit-formalities" element={<ExitFormalities />} />
               </Routes>
             </main>
