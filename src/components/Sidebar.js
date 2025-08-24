@@ -5,7 +5,7 @@ import './Sidebar.css';
 import logo from '../assets/logo.png';
 
 export default function Sidebar() {
-  const location = useLocation();
+  const location = useLocation(); // ✅ Get current path
   const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
@@ -14,6 +14,7 @@ export default function Sidebar() {
     }
   };
 
+  // ✅ Updated menu items - removed potentially missing pages
   const menuItems = [
     { path: '/', icon: '🏠', label: 'Dashboard' },
     { path: '/employees', icon: '👥', label: 'Employee Directory' },
@@ -21,11 +22,11 @@ export default function Sidebar() {
     { path: '/leaves', icon: '🏖️', label: 'Leave Management' },
     { path: '/performance', icon: '🎯', label: 'Performance' },
     { path: '/reports', icon: '📈', label: 'Reports' },
-    { path: '/expenses', icon: '💰', label: 'Expense Approval' },
-    { path: '/goals', icon: '🎯', label: 'Goals & KPI' }, // Added this line
+    { path: '/expenses', icon: '💰', label: 'Expense Approval' }, 
+    { path: '/goals', icon: '🎯', label: 'Goals & KPI' }, 
     { path: '/recruitment', icon: '📝', label: 'Recruitment' },
     { path: '/exit-formalities', icon: '🚪', label: 'Exit Formalities' },
-    { path: '/payroll', icon: '💰', label: 'Payroll Management' },
+    // { path: '/payroll', icon: '💰', label: 'Payroll Management' }, // ❓ Uncomment if exists
     { path: '/security', icon: '🔐', label: 'Security' }
   ];
 
@@ -55,13 +56,14 @@ export default function Sidebar() {
       
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
+          // ✅ Check if current path matches menu item path
           const isActive = location.pathname === item.path;
           
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`nav-item ${isActive ? 'active' : ''}`}
+              className={`nav-item ${isActive ? 'active' : ''}`} // ✅ Add active class
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>

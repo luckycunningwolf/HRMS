@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
+import logo from '../assets/logo.png';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -50,7 +51,7 @@ export default function Login() {
         <div className="login-header">
           <div className="company-logo">
             <img 
-              src="/assets/logo.png" 
+              src={logo}
               alt="Company Logo" 
               className="logo-image"
               onError={(e) => {

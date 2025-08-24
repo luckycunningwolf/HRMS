@@ -14,6 +14,38 @@
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Active Menu Item Styling */
+.nav-item.active {
+  background: linear-gradient(135deg, #81d4fa, #4fc3f7) !important;
+  color: white !important;
+  transform: translateX(8px);
+  box-shadow: 0 4px 16px rgba(129, 212, 250, 0.4);
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+  color: white !important;
+}
+
+/* Enhanced hover effect for non-active items */
+.nav-item:not(.active):hover {
+  background: rgba(129, 212, 250, 0.1);
+  transform: translateX(4px);
+}
+
+/* Active item border indicator */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #29b6f6;
+  border-radius: 0 4px 4px 0;
+}
+
+
 .sidebar::before {
   content: '';
   position: absolute;
